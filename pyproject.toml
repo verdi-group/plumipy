@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "plumipy"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.9"
+license = {file = "LICENSE"}
+keywords = []
+authors = []
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+
+[tool.hatch.version]
+path = "src/plumipy/__about__.py"
+
+[tool.hatch.envs.docs]
+dependencies = [
+  "mkdocs",
+  "mkdocs-material"
+]
+scripts.build = "mkdocs build --clean --strict"
+scripts.serve = "mkdocs serve --dev-addr localhost:8000"
+scripts.deploy = "mkdocs gh-deploy --force"
+
+[tool.hatch.envs.precommit]
+dependencies = ["pre-commit"]
+scripts.install = "pre-commit install"
+scripts.run = "pre-commit run {args:--all-files}"
+
+[tool.hatch.envs.tests]
+dependencies = ["pytest"]
+scripts.run = "pytest {args}"
+
+[tool.ruff]
+lint.ignore = [
+    "TRY003",  # https://docs.astral.sh/ruff/rules/raise-vanilla-args/
+    "EM101",   # https://docs.astral.sh/ruff/rules/raw-string-in-exception/
+    "EM102",   # https://docs.astral.sh/ruff/rules/f-string-in-exception/
+    "PLR2004", # https://docs.astral.sh/ruff/rules/magic-value-comparison/
+    "FBT002",  # https://docs.astral.sh/ruff/rules/boolean-default-value-positional-argument/
+    "TID252",  # https://docs.astral.sh/ruff/rules/relative-imports/
+]
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["INP001", "S101"]
