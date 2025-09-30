@@ -386,10 +386,8 @@ def calculate_spectrum(
 
     partial_hr = pl.calc_partial_hr(freqs, qk)
 
-    if zpl != 0:
-        max_energy = 2.5 * zpl
-    else:
-        max_energy = 5000
+    max_energy = 2.5 * zpl if zpl != 0 else 5000
+
     tmax_mev = pl.time_scaling(tmax)
     energy_mev_positive = pl.inverse_variable(0, max_energy, tmax_mev)
     specfun_energy = pl.spectral_function(partial_hr, energy_k, energy_mev_positive)
@@ -468,16 +466,16 @@ def calculate_spectrum(
 
 
 (
-    R_gs,
-    R_es,
+    r_gs,
+    r_es,
     qk,
-    (Ek, Sk),
-    (E_meV_positive, specfun_energy),
-    (t_fs, S_t, S_t_exact),
-    (G_t),
-    (E_meV, A_E),
-    (L_E),
-    IPR,
+    (energy_k, s_k),
+    (energy_mev_positive, specfun_energy),
+    (t_fs, s_t, s_t_exact),
+    (g_t),
+    (e_mev, a_e),
+    (l_e),
+    ipr,
 ) = calculate_spectrum(
     path_structure_gs=os.path.expanduser("./CONTCAR_GS"),  # Path to ground state structure
     path_structure_es=os.path.expanduser("./POSCAR100"),  # Path to excited state structure
