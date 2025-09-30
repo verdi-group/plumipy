@@ -348,10 +348,10 @@ class Photoluminescence(ReadFiles):
 
 
 def calculate_spectrum(
-    path_structure_gs=os.path.expanduser("./CONTCAR_GS"),  # Path to ground state structure
-    path_structure_es=os.path.expanduser("./POSCAR100"),  # Path to excited state structure
+    path_structure_gs,  #
+    path_structure_es,  # Path to excited state structure
+    path_phonon_band,  # Path to phonon band data
     phonons_source="Phonopy",  # Options: "VASP" or "Phonopy"
-    path_phonon_band=os.path.expanduser("./band.yaml"),  # Path to phonon band data
     temperature=0,  # Temperature
     zpl=3339,  # Zero Phonon Line (meV)           3405, algo-3395
     tmax=2000,  # Upper time limit (fs)
@@ -360,18 +360,20 @@ def calculate_spectrum(
 ):
     """
     Calculates all factors step by step.
+
+    :param path_structure_gs: Path to ground state structure.
     """
     pl = Photoluminescence()
 
-    positions_gs, _ = pl.read_structure(path_structure_gs)
-    positions_es, elements_es = pl.read_structure(path_structure_es)
+    positions_gs, _ = pl.read_structure(os.path.expanduser(path_structure_gs))
+    positions_es, elements_es = pl.read_structure(os.path.expanduser(path_structure_es))
 
     if phonons_source == "Phonopy":
-        masses, freqs, modes = pl.read_phonons_phonopy(path_phonon_band)
+        masses, freqs, modes = pl.read_phonons_phonopy(os.path.expanduser(path_phonon_band))
         freqs = freqs[: int(freqs.shape[0] / 2)]
         modes = modes[: int(modes.shape[0] / 2), ...]
     else:
-        masses, freqs, modes = pl.read_phonons_vasp(path_phonon_band, elements_es)
+        masses, freqs, modes = pl.read_phonons_vasp(os.path.expanduser(path_phonon_band), elements_es)
 
     freqs[freqs < 0.1] = 0.0
     energy_k = pl.freq_to_energy(freqs)
@@ -463,27 +465,3 @@ def calculate_spectrum(
         (l_e),
         ipr,
     )
-
-
-(
-    r_gs,
-    r_es,
-    qk,
-    (energy_k, s_k),
-    (energy_mev_positive, specfun_energy),
-    (t_fs, s_t, s_t_exact),
-    (g_t),
-    (e_mev, a_e),
-    (l_e),
-    ipr,
-) = calculate_spectrum(
-    path_structure_gs=os.path.expanduser("./CONTCAR_GS"),  # Path to ground state structure
-    path_structure_es=os.path.expanduser("./POSCAR100"),  # Path to excited state structure
-    phonons_source="Phonopy",  # Options: "VASP" or "Phonopy"
-    path_phonon_band=os.path.expanduser("./band.yaml"),  # Path to phonon band data
-    temperature=0,  # Temperature
-    zpl=2000,  # Zero Phonon Line (meV)           3405, algo-3395
-    tmax=2000,  # Upper time limit (fs)
-    gamma=10,  # Gamma value (meV)
-    forces=None,  # (os.path.expanduser("./OUTCAR_T"), os.path.expanduser("./OUTCAR_GS")),  # Options: None or tuple (ES file path, GS file path)
-)
