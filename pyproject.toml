@@ -26,26 +26,48 @@ dependencies = [
   "matplotlib~=3.9"
 ]
 
+[project.optional-dependencies]
+docs = [
+"mkdocs",
+  "mkdocs-material"
+]
+tests = [
+  "pytest"
+]
+pre-commit = [
+  "pre-commit"
+]
+
+[dependency-groups]
+dev = [
+  "plumipy[docs,tests,pre-commit]",
+]
+
 [tool.hatch.version]
 path = "src/plumipy/__about__.py"
 
+[tool.hatch.envs.default]
+installer = 'uv'
+
 [tool.hatch.envs.docs]
-dependencies = [
-  "mkdocs",
-  "mkdocs-material"
-]
+features = ["docs"]
 scripts.build = "mkdocs build --clean --strict"
 scripts.serve = "mkdocs serve --dev-addr localhost:8000"
 scripts.deploy = "mkdocs gh-deploy --force"
 
-[tool.hatch.envs.precommit]
-dependencies = ["pre-commit"]
+[tool.hatch.envs.pre-commit]
+features = ["pre-commit"]
 scripts.install = "pre-commit install"
-scripts.run = "pre-commit run {args:--all-files}"
+scripts.run = "pre-commit run {args}"
 
-[tool.hatch.envs.tests]
-dependencies = ["pytest"]
-scripts.run = "pytest {args}"
+[tool.hatch.envs.hatch-test]
+features = ["tests"]
+randomize = false
+parallel = false
+run = "pytest {args}"
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = ["3.9", "3.10", "3.11", "3.12", "3.13"]
 
 [tool.ruff]
 lint.ignore = [
