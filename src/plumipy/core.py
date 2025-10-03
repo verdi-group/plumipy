@@ -175,7 +175,7 @@ class Photoluminescence(ReadFiles):
         direct_spacing = (2 * np.pi) / (2 * reciprocal_max)
         return np.arange(direct_min, direct_max, direct_spacing)
 
-    def fourier(self, iv, function):
+    def fourier(self, iv_array, function):
         """
         Discrete Fourier transform (DFT) using FFT algorithm.
         Here, DFT is approximated as Continuous Fourier Transform.
@@ -185,13 +185,14 @@ class Photoluminescence(ReadFiles):
         Outputs: 1D array of reciprocal variable (generally Energy or frequency in this case) on which
         FFT has been performed and 1D array of the DFT result.
         """
-        div = iv[1] - iv[0]
-        rv = 2 * np.pi * np.fft.fftfreq(len(iv), div)
-        sort = np.argsort(rv)
-        rv = rv[sort]
+        iv_spacing = iv_array[1] - iv_array[0]
+        rv_array = 2 * np.pi * np.fft.fftfreq(len(iv_array), iv_spacing)
+        sort = np.argsort(rv_array)
+        rv_array = rv_array[sort]
         discrete_fourier = np.fft.fft(function)[sort]
-        discrete_fourier = div * discrete_fourier * np.exp(-1j * rv * iv[0])
-        return rv, discrete_fourier
+        discrete_fourier = iv_spacing * discrete_fourier * np.exp(-1j * rv_array * iv_array[0])
+
+        return rv_array, discrete_fourier
 
     def inverse_fourier(self, iv, function):
         """
