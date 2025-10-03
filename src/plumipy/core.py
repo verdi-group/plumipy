@@ -1,6 +1,8 @@
 # ruff: noqa: B008
+from __future__ import annotations
 
 import os
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -346,9 +348,9 @@ class Photoluminescence(ReadFiles):
 
 
 def calculate_spectrum(
-    path_structure_gs,  #
-    path_structure_es,  # Path to excited state structure
-    path_phonon_band,  # Path to phonon band data
+    gs_structure_path: str | Path,  #
+    es_structure_path: str | Path,  # Path to excited state structure
+    phonon_band_path: str | Path,  # Path to phonon band data
     phonons_source="Phonopy",  # Options: "VASP" or "Phonopy"
     temperature=0,  # Temperature
     zpl=3339,  # Zero Phonon Line (meV)           3405, algo-3395
@@ -356,22 +358,38 @@ def calculate_spectrum(
     gamma=10,  # Gamma value (meV)
     forces=None,  # (os.path.expanduser("./OUTCAR_T"), os.path.expanduser("./OUTCAR_GS")),  # Options: None or tuple (ES file path, GS file path)
 ):
-    """
-    Calculates all factors step by step.
+    """Compute the luminescence spectrum and related factors.
 
-    :param path_structure_gs: Path to ground state structure.
+    Args:
+        path_structure_gs (str | os.PathLike): Path to the ground-state structure.
+        path_structure_es (str | os.PathLike): Path to the excited-state structure.
+        path_phonon_band (str | os.PathLike): Path to phonon band data.
+        phonons_source (str, optional): Source/format of the phonon data.
+            Supported values are ``"Phonopy"`` and ``"VASP"``. Defaults to
+            ``"Phonopy"``.
+        temperature (float, optional): Temperature in K used for thermal
+            population/broadening. Defaults to ``0`` (no thermal effects).
+        zpl (float, optional): Zero-phonon line energy in meV. Defaults to ``3339``.
+        tmax (float, optional): Upper time limit in femtoseconds for the time-domain
+            evaluation/integration. Defaults to ``2000``.
+        gamma (float, optional): Homogeneous broadening (Lorentzian half-width)
+            in meV. Defaults to ``10``.
+        forces (tuple[str | os.PathLike, str | os.PathLike] | None, optional):
+            Paths to force files ``(ES_path, GS_path)`` when forces should be
+            read directly (e.g., OUTCARs). If ``None``, forces are obtained from
+            the structures/phonons input. Defaults to ``None``.
     """
     pl = Photoluminescence()
 
-    positions_gs, _ = pl.read_structure(os.path.expanduser(path_structure_gs))
-    positions_es, elements_es = pl.read_structure(os.path.expanduser(path_structure_es))
+    positions_gs, _ = pl.read_structure(Path(gs_structure_path).absolute().as_posix())
+    positions_es, elements_es = pl.read_structure(Path(es_structure_path).absolute().as_posix())
 
     if phonons_source == "Phonopy":
-        masses, freqs, modes = pl.read_phonons_phonopy(os.path.expanduser(path_phonon_band))
+        masses, freqs, modes = pl.read_phonons_phonopy(Path(phonon_band_path).absolute().as_posix())
         freqs = freqs[: int(freqs.shape[0] / 2)]
         modes = modes[: int(modes.shape[0] / 2), ...]
     else:
-        masses, freqs, modes = pl.read_phonons_vasp(os.path.expanduser(path_phonon_band), elements_es)
+        masses, freqs, modes = pl.read_phonons_vasp(os.path.expanduser(phonon_band_path), elements_es)
 
     freqs[freqs < 0.1] = 0.0
     energy_k = constants.h.to("meV / THz").magnitude * freqs
