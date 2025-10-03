@@ -21,6 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
+  "pint==0.25",
   "numpy~=2.0"
 ]
 

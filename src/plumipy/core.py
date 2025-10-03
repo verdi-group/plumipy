@@ -5,6 +5,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+from plumipy import constants
+
 
 class ReadFiles:
     def __init__(self):
@@ -222,17 +224,14 @@ class Photoluminescence(ReadFiles):
             )
         )
 
-    def freq_to_energy(self, freqs):
-        """Conversion of frequencies (THz) to Energy (meV)."""
-
-        return 4.13566 * freqs
-
-    def time_scaling(self, t, reverse=False):
+    @staticmethod
+    def time_scaling(t, reverse=False):
         """
-        Changes time array t from femtoseconds to meV^-1. This is a necesaary step after initializing time through IV
+        Changes time array t from femtoseconds to meV^-1. This is a necessary step after initializing time through IV
         function in order to maintain consistency in units while performing Fourier Transform.
         """
-        return t / 658.2119 if not reverse else t * 658.2119
+        conversion_factor = constants.h.to("meV * fs") / (2 * np.pi)
+        return t * conversion_factor if reverse else t / conversion_factor
 
     def lorentzian(self, x, x0, sigma):
         """
@@ -374,7 +373,7 @@ def calculate_spectrum(
         masses, freqs, modes = pl.read_phonons_vasp(os.path.expanduser(path_phonon_band), elements_es)
 
     freqs[freqs < 0.1] = 0.0
-    energy_k = pl.freq_to_energy(freqs)
+    energy_k = constants.h.to("meV / THz").magnitude * freqs
     energy_k[energy_k == 0] = 0.00001
 
     if forces is not None:
