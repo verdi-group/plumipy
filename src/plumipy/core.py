@@ -157,23 +157,21 @@ class Photoluminescence(ReadFiles):
         """
         super().__init__()
 
-    def inverse_variable(self, iv_low, iv_high, rv_high):
+    def get_direct_mesh(self, direct_min, direct_max, reciprocal_max):
+        """Obtain a 1D array with equal intervals for the direct variable.
+
+        The reciprocal variable is typically energy, whereas the direct variable is time.
+
+        Args:
+            direct_min (float): Lower bound of the direct variable.
+            direct_max (float): Upper bound of the direct variable.
+            reciprocal_max (float): Maximum allowed value of the reciprocal variable.
+
+        Returns:
+            numpy.ndarray: 1D array of direct variable values values.
         """
-        This function can be used to obtain a 1D time array with equal intervals.
-
-        iv: Independent Variable;
-        rv: Reciprocal Variable.
-
-        Inputs: Min max values of independent variable, and
-        max value of rv required by the user.
-
-        div: Minimum resolution of iv.
-
-        Output: 1D array of independent variable (usually time in this case).
-        """
-
-        div = (2 * np.pi) / (2 * rv_high)
-        return np.arange(iv_low, iv_high, div)
+        direct_spacing = (2 * np.pi) / (2 * reciprocal_max)
+        return np.arange(direct_min, direct_max, direct_spacing)
 
     def fourier(self, iv, function):
         """
@@ -391,7 +389,7 @@ def calculate_spectrum(
     max_energy = 2.5 * zpl if zpl != 0 else 5000
 
     tmax_mev = pl.time_scaling(tmax)
-    energy_mev_positive = pl.inverse_variable(0, max_energy, tmax_mev)
+    energy_mev_positive = pl.get_direct_mesh(0, max_energy, tmax_mev)
     specfun_energy = pl.spectral_function(partial_hr, energy_k, energy_mev_positive)
 
     t_mev, s_t, s_t_exact = pl.fourier_spectral_function(partial_hr, energy_k, specfun_energy, energy_mev_positive)
