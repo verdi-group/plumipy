@@ -5,3 +5,8 @@ theme:
 
 markdown_extensions:
   - admonition
+
+nav:
+  - index.md
+  - quickstart.md
+  - developer.md
