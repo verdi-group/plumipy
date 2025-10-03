@@ -21,8 +21,9 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
-  "pint==0.25",
-  "numpy~=2.0"
+  "pint>=0.23,<0.26",
+  "numpy~=2.0",
+  "matplotlib~=3.9"
 ]
 
 [tool.hatch.version]
