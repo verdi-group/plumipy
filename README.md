@@ -2,4 +2,7 @@
 
 # `plumipy`
 
-Python package
+Python package for calculating photoluminescence spectra from constrained DFT.
+
+>[!WARNING]
+> Still in very early stages of development! If you somehow found this code base and are planning to use it, expect breaking changes with every commit. Here be dragons! 🐉
