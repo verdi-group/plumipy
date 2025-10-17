@@ -32,7 +32,8 @@ docs = [
   "mkdocs-material"
 ]
 tests = [
-  "pytest"
+  "pytest",
+  "pytest-regressions"
 ]
 pre-commit = [
   "pre-commit"
