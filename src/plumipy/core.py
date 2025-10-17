@@ -41,7 +41,9 @@ class ReadFiles:
 
             if lattice_type != "Direct":
                 lattice_inv = np.linalg.inv(lattice_vectors.T)
-                atomic_positions = np.array([np.dot(lattice_inv, vec) for vec in atomic_positions])
+                atomic_positions = np.array(
+                    [np.dot(lattice_inv, vec) for vec in atomic_positions]
+                )
 
             atomic_positions[atomic_positions > 0.99] -= 1
             atomic_positions = np.dot(atomic_positions, lattice_vectors)
@@ -76,14 +78,19 @@ class ReadFiles:
                 if "frequency:" in line:
                     freqs.append(float(line.split()[1]))
                     ev_internal = []
-                    for i in range(line_number + 3, line_number + 4 * total_atoms + 2, 4):
+                    for i in range(
+                        line_number + 3, line_number + 4 * total_atoms + 2, 4
+                    ):
                         xyz = [lines[i + j].split()[2] for j in range(3)]
                         ev_internal.append(xyz)
                     normal_modes.append(ev_internal)
         freqs = np.array(freqs).astype(float)
         freqs[freqs < 0] = 0
         normal_modes = np.array(
-            [[[float(x.strip(",")) for x in sublist] for sublist in outer] for outer in normal_modes]
+            [
+                [[float(x.strip(",")) for x in sublist] for sublist in outer]
+                for outer in normal_modes
+            ]
         )
         return atomic_masses, freqs, normal_modes
 
@@ -112,14 +119,20 @@ class ReadFiles:
             atomic_masses = lines[index + 1].split()[2:]
             atomic_masses = np.array(atomic_masses).astype(float)
 
-            index_init = lines.index("Eigenvectors and eigenvalues of the dynamical matrix")
-            index_final = lines.index("ELASTIC MODULI CONTR FROM IONIC RELAXATION (kBar)")
+            index_init = lines.index(
+                "Eigenvectors and eigenvalues of the dynamical matrix"
+            )
+            index_final = lines.index(
+                "ELASTIC MODULI CONTR FROM IONIC RELAXATION (kBar)"
+            )
 
             for i in range(index_init, index_final + 1):
                 internal_modes = []
                 if "THz" in lines[i]:
                     freqs.append(lines[i].split()[lines[i].split().index("THz") - 1])
-                    internal_modes = [lines[j].split() for j in range(i + 2, i + 2 + total_atoms)]
+                    internal_modes = [
+                        lines[j].split() for j in range(i + 2, i + 2 + total_atoms)
+                    ]
                     normal_modes.append(internal_modes)
 
         atomic_masses = np.repeat(atomic_masses, number_of_atoms)
@@ -192,7 +205,9 @@ class Photoluminescence(ReadFiles):
         sort = np.argsort(rv_array)
         rv_array = rv_array[sort]
         discrete_fourier = np.fft.fft(function)[sort]
-        discrete_fourier = iv_spacing * discrete_fourier * np.exp(-1j * rv_array * iv_array[0])
+        discrete_fourier = (
+            iv_spacing * discrete_fourier * np.exp(-1j * rv_array * iv_array[0])
+        )
 
         return rv_array, discrete_fourier
 
@@ -223,7 +238,12 @@ class Photoluminescence(ReadFiles):
             (div / 2) * (np.sum(integrand[1:-1]) + integrand[0] + integrand[-1])
             if equally_spaced
             else np.sum(
-                np.array([((iv[i + 1] - iv[i]) / 2) * (integrand[i + 1] + integrand[i]) for i in range(len(iv) - 1)])
+                np.array(
+                    [
+                        ((iv[i + 1] - iv[i]) / 2) * (integrand[i + 1] + integrand[i])
+                        for i in range(len(iv) - 1)
+                    ]
+                )
             )
         )
 
@@ -233,7 +253,7 @@ class Photoluminescence(ReadFiles):
         Changes time array t from femtoseconds to meV^-1. This is a necessary step after initializing time through IV
         function in order to maintain consistency in units while performing Fourier Transform.
         """
-        conversion_factor = constants.h.to("meV * fs") / (2 * np.pi)
+        conversion_factor = (constants.h.to("meV * fs") / (2 * np.pi)).magnitude
         return t * conversion_factor if reverse else t / conversion_factor
 
     def lorentzian(self, x, x0, sigma):
@@ -248,7 +268,9 @@ class Photoluminescence(ReadFiles):
         """
         Gaussian fit for Dirac-Delta with sigma = 6 (meV) as standard deviation.
         """
-        return (1 / np.sqrt(2 * np.pi * (sigma**2))) * np.exp(-((x - x0) ** 2) / (2 * (sigma**2)))
+        return (1 / np.sqrt(2 * np.pi * (sigma**2))) * np.exp(
+            -((x - x0) ** 2) / (2 * (sigma**2))
+        )
 
     def config_coordinates(self, masses, positions_es, positions_gs, modes):
         """
@@ -258,7 +280,9 @@ class Photoluminescence(ReadFiles):
         masses = np.sqrt(masses)
         r_diff = positions_es - positions_gs
         mr_diff = np.array([masses[i] * r_diff[i, :] for i in range(len(masses))])
-        return np.array([np.sum(mr_diff * modes[i, :, :]) for i in range(modes.shape[0])])
+        return np.array(
+            [np.sum(mr_diff * modes[i, :, :]) for i in range(modes.shape[0])]
+        )
 
     def config_coordinates_f(self, masses, forces_es, forces_gs, modes, energy_k):
         """
@@ -268,7 +292,9 @@ class Photoluminescence(ReadFiles):
         """
         masses = np.sqrt(masses)
         forces_diff = forces_es - forces_gs
-        mf_diff = np.array([(1 / masses[i]) * forces_diff[i, :] for i in range(len(masses))])
+        mf_diff = np.array(
+            [(1 / masses[i]) * forces_diff[i, :] for i in range(len(masses))]
+        )
         qk = np.array([np.sum(mf_diff * modes[i, :, :]) for i in range(modes.shape[0])])
         return (1 / energy_k**2) * qk * 4180.069
 
@@ -278,7 +304,9 @@ class Photoluminescence(ReadFiles):
         """
         return 2 * np.pi * freqs * (qk**2) * 0.166 / (2 * 1.05457)
 
-    def spectral_function(self, partial_hr_factor, energy_k, energy_mev_positive, sigma=6, lorentz=False):
+    def spectral_function(
+        self, partial_hr_factor, energy_k, energy_mev_positive, sigma=6, lorentz=False
+    ):
         """
         Calculates S(hbar_omega) or S(E) (unit less) by using Gaussian or Lorentzian fit
         for Direc-Delta with sigma = 6 meV by default.
@@ -288,15 +316,23 @@ class Photoluminescence(ReadFiles):
         self.sigma = sigma
         if not lorentz:
             specfun_energy = np.array(
-                [np.dot(partial_hr_factor, self.gaussian(i, energy_k, sigma)) for i in energy_mev_positive]
+                [
+                    np.dot(partial_hr_factor, self.gaussian(i, energy_k, sigma))
+                    for i in energy_mev_positive
+                ]
             )
         else:
             specfun_energy = np.array(
-                [np.dot(partial_hr_factor, self.lorentzian(i, energy_k, sigma)) for i in energy_mev_positive]
+                [
+                    np.dot(partial_hr_factor, self.lorentzian(i, energy_k, sigma))
+                    for i in energy_mev_positive
+                ]
             )
         return specfun_energy
 
-    def fourier_spectral_function(self, s_k, energy_k, specfun_energy, energy_mev_positive):
+    def fourier_spectral_function(
+        self, s_k, energy_k, specfun_energy, energy_mev_positive
+    ):
         """
         Calculates the Fourier transform of S(E) which is equal to S(t).
         """
@@ -304,7 +340,9 @@ class Photoluminescence(ReadFiles):
         s_t_exact = np.array([np.dot(s_k, np.exp(-1j * energy_k * i)) for i in t_mev])
         return t_mev, s_t, s_t_exact
 
-    def calc_generating_function(self, s_k, s_t, t_mev, energy_k, energy_mev_positive, temperature):  # noqa: ARG002
+    def calc_generating_function(
+        self, s_k, s_t, t_mev, energy_k, energy_mev_positive, temperature
+    ):  # noqa: ARG002
         """
         Calculates the generating function G(t).
         """
@@ -313,10 +351,17 @@ class Photoluminescence(ReadFiles):
         else:
             boltzmann_constant = 8.61733326e-2  # Boltzmann constant in meV/k
             nk = 1 / ((np.exp(energy_k / (boltzmann_constant * temperature))) - 1)
-            c_e = np.array([np.dot(nk * s_k, self.gaussian(i, energy_k, self.sigma)) for i in energy_mev_positive])
+            c_e = np.array(
+                [
+                    np.dot(nk * s_k, self.gaussian(i, energy_k, self.sigma))
+                    for i in energy_mev_positive
+                ]
+            )
             c_t = self.fourier(energy_mev_positive, c_e)[1]
             c_t_inv = self.inverse_fourier(energy_mev_positive, c_e)[1]
-            generating_function = np.exp((s_t) - (np.sum(s_k)) + c_t + c_t_inv - 2 * np.sum(nk * s_k))
+            generating_function = np.exp(
+                (s_t) - (np.sum(s_k)) + c_t + c_t_inv - 2 * np.sum(nk * s_k)
+            )
 
         return generating_function
 
@@ -335,8 +380,12 @@ class Photoluminescence(ReadFiles):
         Calculates the normalized photoluminescence (PL), L(E)
         """
         a_e = a_e[(energy_mev >= (zpl - 500)) & (energy_mev <= (zpl + 100))]
-        energy_mev = energy_mev[(energy_mev >= (zpl - 500)) & (energy_mev <= (zpl + 100))]
-        l_e = ((energy_mev**3) * a_e) / (self.trapezoidal(((energy_mev**3) * a_e), energy_mev))
+        energy_mev = energy_mev[
+            (energy_mev >= (zpl - 500)) & (energy_mev <= (zpl + 100))
+        ]
+        l_e = ((energy_mev**3) * a_e) / (
+            self.trapezoidal(((energy_mev**3) * a_e), energy_mev)
+        )
         return energy_mev, l_e
 
     def inverse_participation_ratio(self, modes):
@@ -382,14 +431,20 @@ def calculate_spectrum(
     pl = Photoluminescence()
 
     positions_gs, _ = pl.read_structure(Path(gs_structure_path).absolute().as_posix())
-    positions_es, elements_es = pl.read_structure(Path(es_structure_path).absolute().as_posix())
+    positions_es, elements_es = pl.read_structure(
+        Path(es_structure_path).absolute().as_posix()
+    )
 
     if phonons_source == "Phonopy":
-        masses, freqs, modes = pl.read_phonons_phonopy(Path(phonon_band_path).absolute().as_posix())
+        masses, freqs, modes = pl.read_phonons_phonopy(
+            Path(phonon_band_path).absolute().as_posix()
+        )
         freqs = freqs[: int(freqs.shape[0] / 2)]
         modes = modes[: int(modes.shape[0] / 2), ...]
     else:
-        masses, freqs, modes = pl.read_phonons_vasp(os.path.expanduser(phonon_band_path), elements_es)
+        masses, freqs, modes = pl.read_phonons_vasp(
+            os.path.expanduser(phonon_band_path), elements_es
+        )
 
     freqs[freqs < 0.1] = 0.0
     energy_k = constants.h.to("meV / THz").magnitude * freqs
@@ -410,9 +465,13 @@ def calculate_spectrum(
     energy_mev_positive = pl.get_direct_mesh(0, max_energy, tmax_mev)
     specfun_energy = pl.spectral_function(partial_hr, energy_k, energy_mev_positive)
 
-    t_mev, s_t, s_t_exact = pl.fourier_spectral_function(partial_hr, energy_k, specfun_energy, energy_mev_positive)
+    t_mev, s_t, s_t_exact = pl.fourier_spectral_function(
+        partial_hr, energy_k, specfun_energy, energy_mev_positive
+    )
 
-    g_t = pl.calc_generating_function(partial_hr, s_t, t_mev, energy_k, energy_mev_positive, temperature)
+    g_t = pl.calc_generating_function(
+        partial_hr, s_t, t_mev, energy_k, energy_mev_positive, temperature
+    )
 
     energy_mev, a_e = pl.calc_optical_spectral_function(g_t, t_mev, zpl, gamma)
 
@@ -432,7 +491,9 @@ def calculate_spectrum(
     plt.show()
 
     specfun_energy = specfun_energy[energy_mev_positive <= (max(energy_k) + 36)]
-    energy_mev_positive = energy_mev_positive[energy_mev_positive <= (max(energy_k) + 36)]
+    energy_mev_positive = energy_mev_positive[
+        energy_mev_positive <= (max(energy_k) + 36)
+    ]
     s_t = s_t[(t_fs >= 0) & (t_fs <= 550)]
     s_t_exact = s_t_exact[(t_fs >= 0) & (t_fs <= 550)]
     g_t = g_t[(t_fs >= 0) & (t_fs <= 550)]
