@@ -484,11 +484,11 @@ def calculate_spectrum(
     """
     Analyses of results.
     """
-    plt.scatter(energy_k, partial_hr, s=5, marker="s")
-    plt.title(f"Total HR factor = {np.sum(partial_hr)}")
-    plt.xlabel("Phonon Energy (meV)")
-    plt.ylabel("$S_k$")
-    plt.show()
+    # plt.scatter(energy_k, partial_hr, s=5, marker="s")
+    # plt.title(f"Total HR factor = {np.sum(partial_hr)}")
+    # plt.xlabel("Phonon Energy (meV)")
+    # plt.ylabel("$S_k$")
+    # plt.show()
 
     specfun_energy = specfun_energy[energy_mev_positive <= (max(energy_k) + 36)]
     energy_mev_positive = energy_mev_positive[
@@ -499,35 +499,35 @@ def calculate_spectrum(
     g_t = g_t[(t_fs >= 0) & (t_fs <= 550)]
     t_fs = t_fs[(t_fs >= 0) & (t_fs <= 550)]
 
-    plt.plot(energy_mev_positive, specfun_energy)
-    plt.xlabel("Phonon Energy (meV)")
-    plt.ylabel("S(E)")
-    plt.show()
+    # plt.plot(energy_mev_positive, specfun_energy)
+    # plt.xlabel("Phonon Energy (meV)")
+    # plt.ylabel("S(E)")
+    # plt.show()
 
-    plt.plot(t_fs, np.real(s_t), label="Real", color="red")
-    plt.plot(t_fs, np.imag(s_t), label="Imaginary", color="blue")
-    plt.legend()
-    plt.xlabel("Time (fs)")
-    plt.ylabel("S(t)")
-    plt.show()
+    # plt.plot(t_fs, np.real(s_t), label="Real", color="red")
+    # plt.plot(t_fs, np.imag(s_t), label="Imaginary", color="blue")
+    # plt.legend()
+    # plt.xlabel("Time (fs)")
+    # plt.ylabel("S(t)")
+    # plt.show()
 
-    plt.plot(t_fs, np.real(g_t), label="Real", color="red")
-    plt.plot(t_fs, np.imag(g_t), label="Imaginary", color="blue")
-    plt.legend()
-    plt.xlabel("Time (fs)")
-    plt.ylabel("G(t)")
-    plt.show()
+    # plt.plot(t_fs, np.real(g_t), label="Real", color="red")
+    # plt.plot(t_fs, np.imag(g_t), label="Imaginary", color="blue")
+    # plt.legend()
+    # plt.xlabel("Time (fs)")
+    # plt.ylabel("G(t)")
+    # plt.show()
 
-    plt.plot(energy_mev, np.log(np.abs(l_e)))
-    plt.xlabel("Photon Energy (meV)")
-    plt.ylabel("PL")
-    # plt.xlim(1700, 2000)
-    plt.show()
+    # plt.plot(energy_mev, np.log(np.abs(l_e)))
+    # plt.xlabel("Photon Energy (meV)")
+    # plt.ylabel("PL")
+    # # plt.xlim(1700, 2000)
+    # plt.show()
 
-    plt.scatter(energy_k, ipr, s=5, marker="s")
-    plt.title("Inverse Participation Ratio")
-    plt.xlabel("Phonon Energy (meV)")
-    plt.ylabel("IPR")
+    # plt.scatter(energy_k, ipr, s=5, marker="s")
+    # plt.title("Inverse Participation Ratio")
+    # plt.xlabel("Phonon Energy (meV)")
+    # plt.ylabel("IPR")
     plt.show()
 
     return (

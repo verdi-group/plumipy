@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from plumipy.core import Photoluminescence, calculate_spectrum
-from pathlib import Path
 
 
 @pytest.fixture
@@ -21,16 +20,44 @@ def test_get_direct_mesh(photoluminescence, iv_low, iv_high, result):
     assert all(photoluminescence.get_direct_mesh(iv_low, iv_high, np.pi) == result)
 
 
-def test_calculate_spectrum(data_regression):
-    fixtures_directory = Path(__file__).parent / "fixtures"
-    gs_structure_path = fixtures_directory / "CONTCAR_GS"
-    es_structure_path = fixtures_directory / "CONTCAR_ES"
-    phonons_band_path = fixtures_directory / "band.yaml"
+def test_calculate_spectrum(files_path, data_regression, custom_serializer):
+    """Integration test of the `calculate_spectrum` function."""
 
-    spectrum_data = calculate_spectrum(
-        gs_structure_path=gs_structure_path,
-        es_structure_path=es_structure_path,
-        phonon_band_path=phonons_band_path,
+    (
+        positions_gs,
+        positions_es,
+        qk,
+        (a, partial_hr),
+        (energy_mev_positive, specfun_energy),
+        (t_fs, s_t, s_t_exact),
+        (g_t),
+        (energy_mev, a_e),
+        (l_e),
+        ipr,
+    ) = calculate_spectrum(
+        es_structure_path=files_path / "core" / "Si_CONTCAR_ES",
+        gs_structure_path=files_path / "core" / "Si_CONTCAR_GS",
+        phonon_band_path=files_path / "core" / "Si_band.yaml",
     )
-    spectrum_data[0]
-    data_regression.check({"positions_gs": spectrum_data[0].tolist()})
+    data_regression.check(
+        custom_serializer(
+            {
+                "positions_gs": positions_gs,
+                "positions_es": positions_es,
+                "qk": qk,
+                "a": a,
+                "partial_hr": partial_hr,
+                "energy_mev_positive": energy_mev_positive,
+                "specfun_energy": specfun_energy,
+                "t_fs": t_fs,
+                "s_t": s_t,
+                "s_t_exact": s_t_exact,
+                "g_t": g_t,
+                "energy_mev": energy_mev,
+                "a_e": a_e,
+                "l_e": l_e,
+                "ipr": ipr,
+            },
+            max_number=5,
+        )
+    )
