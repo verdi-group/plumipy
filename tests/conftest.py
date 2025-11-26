@@ -38,7 +38,7 @@ def custom_serializer():
             ]
         if isinstance(item, dict):
             return {k: factory(v, max_number) for k, v in item.items()}
-        if isinstance(item, (float, int)):
+        if isinstance(item, (float, int, np.int_)):
             return round(float(item), 5)
         if isinstance(item, np.ndarray):
             if np.iscomplexobj(item):
