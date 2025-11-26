@@ -35,9 +35,9 @@ def test_calculate_spectrum(files_path, data_regression, custom_serializer):
         (l_e),
         ipr,
     ) = calculate_spectrum(
-        es_structure_path=files_path / "core" / "Si_CONTCAR_ES",
-        gs_structure_path=files_path / "core" / "Si_CONTCAR_GS",
-        phonon_band_path=files_path / "core" / "Si_band.yaml",
+        es_structure_path=files_path / "Si_CONTCAR_ES",
+        gs_structure_path=files_path / "Si_CONTCAR_GS",
+        phonon_band_path=files_path / "Si_band.yaml",
     )
     data_regression.check(
         custom_serializer(
