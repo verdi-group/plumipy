@@ -1,6 +1,10 @@
 """Custom parsers for the `plumipy` package."""
 
+from __future__ import annotations
+
+from pathlib import Path
 import numpy as np
+import yaml
 
 
 class ReadFiles:
@@ -42,7 +46,7 @@ class ReadFiles:
             atomic_positions = np.dot(atomic_positions, lattice_vectors)
             return (atomic_positions, atoms)
 
-    def read_phonons_phonopy(self, path):
+    def read_phonons_phonopy(self, path: str | Path) -> tuple:
         """
         Input:   1. path: Location of band.yaml file as a string.
 
@@ -52,40 +56,36 @@ class ReadFiles:
                  3. Eigenvectors corresponding to the phonon frequencies as a 3D array of
                     shape (number of normal mode, number of atoms, 3), where 3 is the x,y and z coordinates.
         """
-        with open(path) as file:
-            lines = [ts.strip() for ts in file]
+        file_path = Path(path)
 
-        freqs = []
-        normal_modes = []
+        if file_path.suffix in (".yml", ".yaml"):
+            with file_path.open("r") as handle:
+                data = yaml.safe_load(handle)
 
-        with open(path) as file:
-            atomic_masses = [line.split()[1] for line in file if "mass:" in line]
-
-        atomic_masses = np.array(atomic_masses).astype(float)
-        total_atoms = len(atomic_masses)
-
-        with open(path) as file:
-            line_number = -1
-            for line in file:
-                line_number += 1
-                if "frequency:" in line:
-                    freqs.append(float(line.split()[1]))
-                    ev_internal = []
-                    for i in range(
-                        line_number + 3, line_number + 4 * total_atoms + 2, 4
-                    ):
-                        xyz = [lines[i + j].split()[2] for j in range(3)]
-                        ev_internal.append(xyz)
-                    normal_modes.append(ev_internal)
-        freqs = np.array(freqs).astype(float)
-        freqs[freqs < 0] = 0
-        normal_modes = np.array(
+        yaml_freqs = np.array(
             [
-                [[float(x.strip(",")) for x in sublist] for sublist in outer]
-                for outer in normal_modes
+                [band_dict["frequency"] for band_dict in qpoint_data["band"]]
+                for qpoint_data in data["phonon"]
             ]
         )
-        return atomic_masses, freqs, normal_modes
+        yaml_freqs = np.concatenate([yaml_freqs[0, :], yaml_freqs[1, :]], axis=0)
+        yaml_freqs[yaml_freqs < 0] = 0  # TODO: remove this rather hacky solution 😅
+
+        eigenvectors = np.array(
+            [
+                [band_dict["eigenvector"] for band_dict in phonon_data["band"]]
+                for phonon_data in data["phonon"]
+            ]
+        )
+        complex_eigenvectors = (
+            eigenvectors[:, :, :, :, 0] + eigenvectors[:, :, :, :, 1] * 1j
+        )
+        final_eigenvectors = np.concatenate(
+            [complex_eigenvectors[0, :, :, :], complex_eigenvectors[1, :, :, :]], axis=0
+        )
+        atomic_masses = [point["mass"] for point in data["points"]]
+
+        return atomic_masses, yaml_freqs, final_eigenvectors.real
 
     def read_phonons_vasp(self, path, atoms):
         """
