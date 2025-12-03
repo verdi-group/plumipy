@@ -287,8 +287,8 @@ def calculate_spectrum(
         masses, freqs, modes = parser.read_phonons_phonopy(
             Path(phonon_band_path).absolute().as_posix()
         )
-        freqs = freqs[: int(freqs.shape[0] / 2)]
-        modes = modes[: int(modes.shape[0] / 2), ...]
+        freqs = freqs[(0, 0, 0)]
+        modes = modes[(0, 0, 0)].real
     else:
         masses, freqs, modes = parser.read_phonons_vasp(
             os.path.expanduser(phonon_band_path), elements_es
