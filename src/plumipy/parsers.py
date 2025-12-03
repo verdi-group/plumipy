@@ -62,30 +62,26 @@ class ReadFiles:
             with file_path.open("r") as handle:
                 data = yaml.safe_load(handle)
 
-        yaml_freqs = np.array(
-            [
-                [band_dict["frequency"] for band_dict in qpoint_data["band"]]
-                for qpoint_data in data["phonon"]
-            ]
-        )
-        yaml_freqs = np.concatenate([yaml_freqs[0, :], yaml_freqs[1, :]], axis=0)
-        yaml_freqs[yaml_freqs < 0] = 0  # TODO: remove this rather hacky solution 😅
-
-        eigenvectors = np.array(
-            [
-                [band_dict["eigenvector"] for band_dict in phonon_data["band"]]
-                for phonon_data in data["phonon"]
-            ]
-        )
-        complex_eigenvectors = (
-            eigenvectors[:, :, :, :, 0] + eigenvectors[:, :, :, :, 1] * 1j
-        )
-        final_eigenvectors = np.concatenate(
-            [complex_eigenvectors[0, :, :, :], complex_eigenvectors[1, :, :, :]], axis=0
-        )
         atomic_masses = [point["mass"] for point in data["points"]]
 
-        return atomic_masses, yaml_freqs, final_eigenvectors.real
+        frequencies = {
+            tuple(qpoint_data["q-position"]): np.array(
+                [band_dict["frequency"] for band_dict in qpoint_data["band"]]
+            )
+            for qpoint_data in data["phonon"]
+        }
+        eigenvectors = {
+            tuple(qpoint_data["q-position"]): np.array(
+                [band_dict["eigenvector"] for band_dict in qpoint_data["band"]]
+            )
+            for qpoint_data in data["phonon"]
+        }
+        complex_eigenvectors = {
+            qpoint: val[..., 0] + val[..., 1] * 1j
+            for qpoint, val in eigenvectors.items()
+        }
+
+        return atomic_masses, frequencies, complex_eigenvectors
 
     def read_phonons_vasp(self, path, atoms):
         """
